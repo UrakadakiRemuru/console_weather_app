@@ -5,7 +5,7 @@ import requests
 from dotenv import load_dotenv
 from googletrans import Translator
 
-from ..weather_by_name.weather_by_name import translate_anything, get_translated_country_name_by_code
+from weather_console.weather_by_name.weather_by_name import translate_anything, get_translated_country_name_by_code
 
 load_dotenv()
 

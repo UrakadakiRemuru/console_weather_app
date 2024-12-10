@@ -1,9 +1,10 @@
-from ..utilities.utils import get_translator
+import sys
 
 if __name__ == '__main__':
-    from ..weather_api.geocoding_api import parse_response, get_city_coordinates
+    from weather_console.utilities.utils import get_translator
+    from weather_console.weather_api.geocoding_api import parse_response, get_city_coordinates
     from pprint import pprint
-    from ..weather_api.openweathermap_api import get_weather_data, parse_weather_data
+    from weather_console.weather_api.openweathermap_api import get_weather_data, parse_weather_data
 
     translator = get_translator()
     response = get_city_coordinates({'city': 'Санкт-Петербург'})
