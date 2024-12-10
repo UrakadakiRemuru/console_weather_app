@@ -24,7 +24,6 @@ class RequestParamsToOpenWeather(models.Model):
 
 
 class ResponseFromOpenWeather(models.Model):
-    city = models.CharField(max_length=255)
     weather = models.CharField(max_length=255)
     temperature = models.IntegerField()
     feels_like = models.IntegerField()
