@@ -170,8 +170,8 @@ RU
 
 Таблица для хранения ответа от `openweathermap`.
 
-|    id    | city | weather | temperature | feels_like | wind_speed | response_time |
-|:--------:|:----:|:-------:|:-----------:|:----------:|:----------:|:-------------:|
+|    id    | weather | temperature | feels_like | wind_speed | response_time |
+|:--------:|:-------:|:-----------:|:----------:|:----------:|:-------------:|
 
     id - целое число, первичный ключ
     city - строка, название города
