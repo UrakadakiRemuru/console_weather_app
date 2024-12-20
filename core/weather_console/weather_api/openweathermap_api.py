@@ -3,10 +3,11 @@ from typing import Dict
 from dotenv import load_dotenv
 
 import requests
+from requests import exceptions
 
 load_dotenv()
 
-def get_weather_data(lat:float, lon:float, units: str = 'metric', lang_preference: str = 'ru') -> Dict:
+def get_weather_data(lat:float, lon:float, units: str, lang_preference: str) -> Dict:
     '''
     Получение данных о погоде из openweathermap.
     Args:
@@ -17,10 +18,21 @@ def get_weather_data(lat:float, lon:float, units: str = 'metric', lang_preferenc
 
     Raises:
         ConnectionError: В случае если присутствуют проблемы с интернет-соединением.
+        TimeoutError: В случае проблем подключения к сервису.
 
     Returns:
         Данные о погоде в виде словаря.
     '''
+
+    if units:
+        units = units.lower()
+    else:
+        units = 'metric'
+
+    if lang_preference:
+        lang_preference = lang_preference.lower()
+    else:
+        lang_preference = 'ru'
 
     params = {
         'lat': lat,
@@ -28,13 +40,15 @@ def get_weather_data(lat:float, lon:float, units: str = 'metric', lang_preferenc
         'appid': os.getenv('OWM_API_KEY'),
         'units': units,
         'exclude': 'minutely,hourly,daily,alerts',
-        'lang': lang_preference.lower(),
+        'lang': lang_preference,
     }
 
     try:
         response = requests.get('https://api.openweathermap.org/data/2.5/weather', params=params, timeout=5)
-    except ConnectionError as e:
+    except exceptions.ConnectionError as e:
         raise ConnectionError('Проверьте подключение к интернету и повторите попытку.') from e
+    except (exceptions.Timeout, exceptions.ReadTimeout) as e:
+        raise TimeoutError('Проблемы соединения с сервисом. Повторите попытку позже') from e
 
     if response.status_code == 200:
         response = response.json()
@@ -65,7 +79,7 @@ def parse_weather_data(data: Dict) -> Dict[str, str | float | int]:
 
     return {
         'weather': data.get('weather')[0].get('description').capitalize(),
-        'temperature': data.get('main').get('temp'),
-        'feels_like': data.get('main').get('feels_like'),
+        'temperature': int(data.get('main').get('temp')),
+        'feels_like': int(data.get('main').get('feels_like')),
         'wind_speed': data.get('wind').get('speed'),
     }
