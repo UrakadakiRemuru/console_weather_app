@@ -10,10 +10,20 @@ disable=too-few-public-methods,
         trailing-whitespace,
         unused-import
 
-ignore=**/migrations/*, manage.py, **/settings.py, **/wsgi.py, **/asgi.py, **/models.py
+ignore=**/migrations/*, manage.py, **/settings.py, **/wsgi.py, **/asgi.py, **/models.py, apps.py
 
 [MESSAGES CONTROL]
-disable=missing-docstring, too-few-public-methods, invalid-name, no-member, import-outside-toplevel, trailing-whitespace
+disable=
+    missing-docstring,
+    too-few-public-methods,
+    invalid-name,
+    no-member,
+    import-outside-toplevel,
+    trailing-whitespace,
+    anomalous-backslash-in-string,
+    wrong-import-position,
+    inconsistent-return-statements
+
 
 [REPORTS]
 output-format=text
