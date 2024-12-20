@@ -3,8 +3,32 @@ from typing import Dict
 from googletrans import Translator
 from iso3166 import countries, countries_by_alpha2
 
+_NAME_MAP = ('city', 'country')
 
-def parse_user_input(input_string: str) -> Dict[str, str]:
+def get_location_names(user_input: str, translator: Translator) -> Dict[str, str]:
+    '''
+    Собирает введенные пользователем название города или названия города и страны в один словарь и добавляет к ним
+    код страны в iso-3166.
+
+    Args:
+        user_input (str): Название города или название города, название страны.
+        translator (Translator): Экземпляр переводчика.
+
+    Raises:
+        ValueError: В случае, если страна была указана неверно.
+
+    Returns:
+        Словарь с названием города, названием стран и кодом страны, если таковые были указаны.
+    '''
+
+    city_country_data = _parse_user_input(user_input)
+    if country_name := city_country_data.get('country'):
+        country_code = _get_country_code(country_name, translator=translator)
+        city_country_data['country_code'] = country_code
+
+    return city_country_data
+
+def _parse_user_input(input_string: str) -> Dict[str, str]:
     '''
     Парсинг введенных пользователем данных. Пользователь вводит либо название города, либо названия города и страны.
     Во втором случае данные должны быть разделены запятой.
@@ -27,14 +51,12 @@ def parse_user_input(input_string: str) -> Dict[str, str]:
         }
     '''
 
-    NAME_MAP = ('city', 'country')
-
     name_list: list[str] = input_string.replace(' ', '').split(',')
 
-    return dict(zip(NAME_MAP, name_list))
+    return dict(zip(_NAME_MAP, name_list))
 
 
-def get_country_code(country_name: str, *, translator: Translator) -> str:
+def _get_country_code(country_name: str, *, translator: Translator) -> str:
     '''
     Переводит название страны на английский и выдает код страны в формате ISO-3166.
     Args:
@@ -62,7 +84,7 @@ def get_country_code(country_name: str, *, translator: Translator) -> str:
         raise ValueError(f'Перепроверьте введенные данные {country_name} и повторите попытку.') from e
 
 
-def get_translated_country_name_by_code(country_code: str, lang_preference: str = 'ru', *,
+def get_translated_country_name_by_code(country_code: str, lang_preference: str, *,
                                         translator: Translator) -> str:
     '''
     Получения названия страны на предпочитаемом языке из ISO-3166 кода.
@@ -79,7 +101,11 @@ def get_translated_country_name_by_code(country_code: str, lang_preference: str 
     '''
 
     country_code = country_code.upper()
-    lang_preference = lang_preference.lower()
+
+    if lang_preference:
+        lang_preference = lang_preference.lower()
+    else:
+        lang_preference = 'ru'
 
     try:
         country = countries_by_alpha2.get(country_code)
@@ -93,7 +119,7 @@ def get_translated_country_name_by_code(country_code: str, lang_preference: str 
     return translated_country_name
 
 
-def translate_anything(string: str, lang_preference: str = 'ru', *, translator: Translator) -> str:
+def translate_anything(string: str, lang_preference: str, *, translator: Translator) -> str:
     '''
     Переводит заданную строку на предпочитаемый язык из ISO-3166 кода.
     Args:
@@ -104,8 +130,10 @@ def translate_anything(string: str, lang_preference: str = 'ru', *, translator: 
     Returns:
         Переведенная строка.
     '''
-
-    lang_preference = lang_preference.lower()
+    if lang_preference:
+        lang_preference = lang_preference.lower()
+    else:
+        lang_preference = 'ru'
 
     translated_string: str = translator.translate(string, dest=lang_preference).text
 
