@@ -39,7 +39,7 @@ class CommandHandler:
         self._COMMAND_MAP = {
             r'\вгороде': self._handle_weather_by_name,
             r'\влокации': self._handle_weather_by_location,
-            r'\висторию': self._handle_request_history,
+            r'\впопулярные': self._handle_request_history,
             r'\внастройки': self._handle_settings,
             r'\винструкцию': self._show_instructions,
             r'\выйти': self._exit,
@@ -142,7 +142,10 @@ class CommandHandler:
         '''
 
         try:
-            return int(self._console.input()) - 1
+            val = int(self._console.input())
+            if val < 1:
+                raise ValueError
+            return val - 1
         except ValueError:
             self._console.print(f'Необходимо ввести целочисленное значение от 1 до {city_amount}. \n')
             return self._get_refinement_index_of_city(city_amount)
@@ -159,7 +162,7 @@ class CommandHandler:
             parsed_geocoding_response (List[Dict[str, float | str | None]]): Отформатированный ответ от geocoding.
 
         Returns:
-            Индекс выбранного пользователем города или 0, в случае если ответ от geocoding был однозначным.
+            Выбранный город.
         '''
 
         city_amount = len(parsed_geocoding_response)
@@ -240,12 +243,12 @@ class CommandHandler:
             self._console.print(e.args[0])
             return
 
-        fill_db(city_coordinates, parsed_weather_data)
+        fill_db(city_coordinates, parsed_weather_data, is_current_location=True)
         self._to_representation_weather(city_coordinates, parsed_weather_data)
 
     def _handle_request_history(self):
         '''
-        Обработка команды \висторию.
+        Обработка команды \впопулярные.
         '''
 
         user_request_history = get_user_request_history()
@@ -337,31 +340,47 @@ class CommandHandler:
 
     def _process_instruction(self):
         '''Настройка инструкций при запуске.'''
-        choice = self._console.input('Необходимо ли показывать инструкцию при каждом запуске? (Д/Н): ').lower()
+        choice = self._console.input('Необходимо ли показывать инструкцию при каждом запуске? (Y/N): ').lower()
         CHOICE_MAP = {
-            'д': True,
-            'н': False
+            'y': True,
+            'n': False
         }
 
         if choice not in CHOICE_MAP:
-            self._console.print('Введите корректные данные "Д" или "Н". \n')
+            self._console.print('Введите корректные данные "Y" или "N". \n')
             return self._process_instruction()
 
         self._instruction_on_start = CHOICE_MAP.get(choice)
 
     def _show_instructions(self):
-        '''Демонстрирует инструкцию.'''
+        '''Демонстрация инструкции.'''
 
-        instruction = '''Для использования приложения необходимо подключение к интернету. \n
-Чтобы узнать погодные условия в городе, воспользуйтесь командой \вгороде и следуйте дальнейшим указаниям. \n
-Для получения информации о погоде по вашему текущему месторасположению, используйте команду \влокации. \n
-Чтобы посмотреть историю ваших запросов введите \висторию. Данная команда позволят как повторить выбранный 
-запрос, так и показать погодные условия, полученные в результате вашего последнего запроса. \n
-Для настройки используйте команду \внастройки и следуйте инструкциям. \n
-Для повторного отображения настроек введите команду \винструкию. \n
-Для выхода из приложения напишите \выйти. \n
-        '''
+        instruction = '''Для использования приложения необходимо подключение к интернету.
+Иногда приложение будет запрашивать ввод букв, для подтверждения или уточнения действий. Пожалуйста, используйте 
+буквы латинского алфавита.
+Чтобы узнать погодные условия в городе, воспользуйтесь командой \вгороде и следуйте дальнейшим указаниям. 
+Для получения информации о погоде по вашему текущему месторасположению, используйте команду \влокации.
+Чтобы посмотреть историю ваших запросов введите \впопулярные. Данная команда позволят как повторить выбранный 
+запрос, так и показать погодные условия, полученные в результате вашего последнего запроса.
+Для настройки используйте команду \внастройки и следуйте инструкциям.
+Для повторного отображения настроек введите команду \винструкцию.
+Для выхода из приложения напишите \выйти.
+'''
         self._console.print(instruction)
+
+    def _help(self):
+        '''Демонстрирует краткую инструкцию.'''
+
+        commands = '''
+1. \вгороде - узнать погоду по названию города. \n
+2. \влокации - узнать погоду в текущей локации. \n
+3. \впопулярные - просмотреть список самых популярных запросов. \n
+4. \внастройки - настройки персонализации. \n
+5. \винструкцию - показать инструкцию использования. \n
+6. \выйти - выход из приложения. \n
+        '''
+        self._console.print(commands)
+
 
     def _exit(self):
         '''
@@ -381,7 +400,7 @@ class CommandHandler:
                 self._console.print('Далее вам будем предложено осуществить настройку приложения. \n')
                 self._handle_settings()
                 self._is_first_time = False
-            self._show_instructions()
+            self._help()
 
         self._start()
 
@@ -391,12 +410,12 @@ class CommandHandler:
                 command = self._console.input('Введите команду: ')
                 if not command.startswith('\\'):
                     self._console.print(f'Введенной команды {command} не существует! Введите одну из '
-                                        f'списка \вгороде, \влокации, \висторию, \внастройки, \выйти. \n')
+                                        f'списка \вгороде, \влокации, \впопулярные, \внастройки, \выйти. \n')
                 else:
                     handler = self._COMMAND_MAP.get(command)
                     if not handler:
                         self._console.print(f'Введенной команды {command} не существует! Введите одну из '
-                                            f'списка \вгороде, \влокации, \висторию, \внастройки, \выйти. \n')
+                                            f'списка \вгороде, \влокации, \впопулярные, \внастройки, \выйти. \n')
                         self._start()
                     else:
                         handler()

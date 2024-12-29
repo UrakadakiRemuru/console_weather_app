@@ -52,7 +52,7 @@ def prepare_response_data(
 
     dict_data = [
         ('city', user_request.city),
-        ('time', response.response_time.astimezone(timezone('Europe/Moscow')).strftime('%H:%M:%S %d.%m.%Y')),
+        ('time', str(response.response_time.astimezone(timezone('Europe/Moscow')))),
         ('temperature', str(response.temperature) + temp),
         ('feels_like', str(response.feels_like) + temp),
         ('wind_speed', str(response.wind_speed) + speed)

@@ -35,13 +35,14 @@ def _process_user_request(
 
     if is_current_location:
         user_request_instance, _ = UserRequestHistory.objects.get_or_create(
-            is_current_location=is_current_location)
+            city=city_name, country=country_name, is_current_location=is_current_location)
         user_request_instance.counter += 1
         user_request_instance.save()
         return user_request_instance
 
     try:
-        user_request_instance = UserRequestHistory.objects.get(city=city_name, country=country_name)
+        user_request_instance = UserRequestHistory.objects.get(city=city_name, country=country_name,
+                                                               is_current_location=is_current_location)
     except UserRequestHistory.DoesNotExist:
         return UserRequestHistory.objects.create(
             city=city_name,
@@ -114,13 +115,15 @@ def _create_request_response_connection(
     )
 
 
-def fill_db(city_coordinates: Dict[str, float | str | None], parsed_weather_data: Dict[str, str | float | int]):
+def fill_db(city_coordinates: Dict[str, float | str | None], parsed_weather_data: Dict[str, str | float | int],
+            is_current_location: bool = False):
     '''
-    Заполнение базы данных полученными данными.
+    Заполнение базы данных полученными данными в случае определения погоды по названию города.
 
     Args:
         city_coordinates (Dict[str, float | str | None]): Данные о городе.
         parsed_weather_data (Dict[str, str | float | int]): Данные о погоде.
+        is_current_location (bool): Маркер для заполнения данных в текущей локации.
 
     '''
 
@@ -128,7 +131,7 @@ def fill_db(city_coordinates: Dict[str, float | str | None], parsed_weather_data
         city_name = city_coordinates.get('city')
         country_name = city_coordinates.get('country')
         coords = get_coordinates_from_parsed_geocoding_response(city_coordinates)
-        user_request_instance = _process_user_request(city_name, country_name)
+        user_request_instance = _process_user_request(city_name, country_name, is_current_location=is_current_location)
         geocoding_api_response_instance = _process_geocoding_api_response(*coords)
         openweathermap_response_instance = _process_open_weather_map_response(parsed_weather_data)
         _create_request_response_connection(

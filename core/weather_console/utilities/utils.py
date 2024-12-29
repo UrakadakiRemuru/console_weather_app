@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Dict
 
+import pytz
 from googletrans import Translator
 from weather_console.services.prepare_data import METRICS_MAP
 
@@ -55,6 +56,6 @@ def prepare_weather_data_to_representation(weather_data: Dict[str, str | float |
     weather_data['wind_speed'] = str(weather_data['wind_speed']) + speed
     return {
         'city': city_name,
-        'time': datetime.now().strftime('%H:%M:%S %d.%m.%Y'),
+        'time': str(datetime.now(pytz.timezone('Europe/Moscow'))),
         **weather_data
     }

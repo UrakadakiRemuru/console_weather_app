@@ -85,7 +85,7 @@ class Paginator:
 
         for item_id, city_name, country_name, is_current_location in self.get_page_items():
             if is_current_location:
-                table.add_row(item_id, '-', '-', 'Да')
+                table.add_row(item_id, city_name, country_name, '\u2713')
             else:
                 table.add_row(item_id, city_name, country_name, '-')
 
